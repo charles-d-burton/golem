@@ -1,5 +1,13 @@
 package bus
 
+/*
+This package is intended to start the socket connections that
+the system uses. It also will bind the clients and group the necessary connections
+together.  This means that when a client connects it will be connected to the control
+bus chan, will be given a message chan, and a chan to send file data through.  Each of these
+chans will be connected to a socket.
+*/
+
 import (
 	"net"
 	"log"
