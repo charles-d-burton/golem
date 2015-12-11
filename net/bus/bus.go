@@ -48,9 +48,7 @@ func SocketListener(ip string, port int, role string) {
     if ip == "" {
         ip = "localhost"
     }
-    if port == 0 {
-        port = 10000
-    }
+    
     l, err := net.Listen("tcp", ip + ":" + strconv.Itoa(port))
     if err != nil {
         log.Fatal(err)
@@ -67,9 +65,9 @@ func SocketListener(ip string, port int, role string) {
 }
 
 func processConnection(c net.Conn) {
-    log.Println("Processing Connection")
+    log.Println("Processing Connection from: ", c.RemoteAddr().String())
 	hostChannel := make (chan string)
-    host := containers.Host{c, "test", 10000, hostChannel}
+    host := containers.Host{c, c.RemoteAddr(), "test", 10000, hostChannel}
     hostPool = append(hostPool, host)
     log.Println("Finished Processing Connection")
 }
