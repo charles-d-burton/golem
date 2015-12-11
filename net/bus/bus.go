@@ -43,7 +43,7 @@ This opens the communication CommSocketListener
 peons will connect to and use this socket
 //TODO:  Connect the socket bus here with the control bus
 */
-func CommSocketListener(ip string, port int, role string) {
+func SocketListener(ip string, port int, role string) {
     log.Println("Listening for Comm on socket: " + strconv.Itoa(port))
     if ip == "" {
         ip = "localhost"

@@ -4,6 +4,9 @@ import (
 	"log"
 	"flag"
 	"golem-server/master"
+	"os"
+	"os/signal"
+	"stringify"
 	
 )
 
@@ -28,4 +31,12 @@ func main() {
 	} else {
 		log.Println("Invalid mode setting")
 	}
+	
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for sig := range c {
+			log.Println(stringify(sig))
+		}
+	}()
 }
