@@ -13,6 +13,7 @@ import (
 	"log"
     "golem-server/net/bus/containers"
     "strconv"
+    "errors"
 )
 
 const (
@@ -99,20 +100,20 @@ func processConnection(c net.Conn) {
         log.Println(err)
         return
     }
-    for _, peon := range hostPool {
-        peonIP, _, err := net.SplitHostPort(peon.RemoteHost.RemoteAddr().String())
-        if err != nil {
-            log.Println("Connecetion error")
-            return
-        }
-        if peonIP == ip {
-            log.Println("Already accepted a host with this IP address\n", "Closing connections")
-            c.Write([]byte("Already Accepted a connection from this host\n"))
-            c.Write([]byte("Closing..."))
-            defer c.Close()
-            return
-        }
+    
+    peon, err := findConnection(c)
+    if err != nil {
+        log.Println("Connection errored out")
+        return
     }
+    if peon != nil {
+        remote, _, _ := net.SplitHostPort(peon.RemoteHost.RemoteAddr().String())
+        log.Println("Found a host already connected with that address", remote)
+        c.Write([]byte("Already Accepted a connection from this host\n"))
+        defer c.Close()
+        return            
+    }
+    
     log.Println("Processing Connection from: ", ip)
 	hostChannel := make (chan string)
     host := containers.Host{c, nil, "test", 10000, hostChannel}
@@ -126,18 +127,39 @@ func attachDataPort(c net.Conn) {
         log.Println("Connection Error")
         return
     }
-    log.Println("Initializing Data port from: ", ip)
+    peonConn, err := findConnection(c)
+    if err != nil {
+        log.Println("Connection errored out")
+        defer c.Close()
+        return
+    }
+    if peonConn != nil {
+        log.Println("Initializing Data port from: ", ip)
+        peonConn.DataPort = c
+    } else {
+        log.Println("Did not find a communication port")
+        c.Write([]byte("Did not find a communication port for you, closing"))
+        defer c.Close()
+    }
+}
+
+func findConnection(c net.Conn) (*containers.Host, error) {
+    ip, _, err := net.SplitHostPort(c.RemoteAddr().String())
+    if err != nil {
+        log.Println("Unable to resolve ip address from connection")
+        return nil, errors.New("Unable to resolve ip address from connections")
+    }
     for _, peon := range hostPool {
         peonIP, _, err := net.SplitHostPort(peon.RemoteHost.RemoteAddr().String())
         if err != nil {
-            log.Println("Connection error")
-            return
+            log.Println("Unable to resolve peon ip address")
+            return nil, errors.New("Unable to resolve ip address from connection")
         }
         if peonIP == ip {
-            peon.DataPort = c
-            break //Found a match, no need to continue further
+            return &peon, nil
         }
     }
+    return nil, nil
 }
 
 /*
