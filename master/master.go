@@ -9,5 +9,6 @@ StartMaster starts the Master processes
 */
 func StartMaster(commPort int, dataPort int, bindIP string, role string) {
 	go bus.EventBusListener()
-	bus.SocketListener(bindIP, commPort, role)
+	go bus.SocketListener(bindIP, dataPort, "data")
+	bus.SocketListener(bindIP, commPort, "comm")
 }

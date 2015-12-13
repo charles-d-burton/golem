@@ -12,8 +12,9 @@ the network to the remote host.
 */
 type Host struct {
 	RemoteHost net.Conn
-	RemoteAddr net.Addr
+	DataPort net.Conn
 	HostName string
 	Port int
 	Message chan string
+	
 }

@@ -52,32 +52,92 @@ peons will connect to and use this socket
 //TODO:  Connect the socket bus here with the control bus
 */
 func SocketListener(ip string, port int, role string) {
-    log.Println("Listening for Comm on socket: " + strconv.Itoa(port))
-    if ip == "" {
-        ip = "localhost"
+    listener := initListener(ip, port)
+    if role == "comm" {
+        startCommPort(listener)
+    } else {
+        go startDataPort(listener)
     }
-    
+}
+
+/*
+Creates the socket listener
+*/
+func initListener(ip string, port int) (net.Listener) {
+    log.Println("Listening for Comm on socket: ", strconv.Itoa(port))
     l, err := net.Listen("tcp", ip + ":" + strconv.Itoa(port))
     if err != nil {
         log.Fatal(err)
         panic(err)
     }
+    return l
+}
+
+func startCommPort(l net.Listener) {
     for {
         fd, err := l.Accept()
         if err != nil {
-            log.Fatal(err)
-            //panic(err)
+            log.Println("Something went wrong: ", err)
         }
         go processConnection(fd)
     }
 }
 
+func startDataPort(l net.Listener) {
+    for {
+        fd, err := l.Accept()
+        if err != nil {
+            log.Println("Something went awry: ", err)
+        }
+        go attachDataPort(fd)
+    }    
+}
+
 func processConnection(c net.Conn) {
-    log.Println("Processing Connection from: ", c.RemoteAddr().String())
+    ip, _, err := net.SplitHostPort(c.RemoteAddr().String())
+    if err != nil {
+        log.Println(err)
+        return
+    }
+    for _, peon := range hostPool {
+        peonIP, _, err := net.SplitHostPort(peon.RemoteHost.RemoteAddr().String())
+        if err != nil {
+            log.Println("Connecetion error")
+            return
+        }
+        if peonIP == ip {
+            log.Println("Already accepted a host with this IP address\n", "Closing connections")
+            c.Write([]byte("Already Accepted a connection from this host\n"))
+            c.Write([]byte("Closing..."))
+            defer c.Close()
+            return
+        }
+    }
+    log.Println("Processing Connection from: ", ip)
 	hostChannel := make (chan string)
-    host := containers.Host{c, c.RemoteAddr(), "test", 10000, hostChannel}
+    host := containers.Host{c, nil, "test", 10000, hostChannel}
     hostPool = append(hostPool, host)
     log.Println("Finished Processing Connection")
+}
+
+func attachDataPort(c net.Conn) {
+    ip, _, err := net.SplitHostPort(c.RemoteAddr().String())
+    if err != nil {
+        log.Println("Connection Error")
+        return
+    }
+    log.Println("Initializing Data port from: ", ip)
+    for _, peon := range hostPool {
+        peonIP, _, err := net.SplitHostPort(peon.RemoteHost.RemoteAddr().String())
+        if err != nil {
+            log.Println("Connection error")
+            return
+        }
+        if peonIP == ip {
+            peon.DataPort = c
+            break //Found a match, no need to continue further
+        }
+    }
 }
 
 /*
