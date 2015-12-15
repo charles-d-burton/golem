@@ -2,6 +2,7 @@ package containers
 
 import (
 	"net"
+	"sync"
 )
 
 /*
@@ -16,5 +17,5 @@ type Host struct {
 	HostName string
 	Port int
 	Message chan string
-	
+	*sync.RWMutex
 }

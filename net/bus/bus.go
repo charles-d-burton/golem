@@ -14,13 +14,28 @@ import (
     "golem-server/net/bus/containers"
     "strconv"
     "errors"
+    //"io/ioutil"
+    "bufio"
+    "sync"
 )
 
 const (
     busAddress = "/tmp/golem_bus.sock"
 )
 
+var messageBus = make(chan []byte, 500)
+
 var hostPool []containers.Host
+var modPool sync.Mutex
+
+func init () {
+    go func() {
+        for {
+            message := <- messageBus
+            log.Println(string(message))
+        }
+    }()
+}
 
 /*
 EventBusListener Will be the backend bus which messages will be passed over
@@ -116,8 +131,11 @@ func processConnection(c net.Conn) {
     
     log.Println("Processing Connection from: ", ip)
 	hostChannel := make (chan string)
-    host := containers.Host{c, nil, "test", 10000, hostChannel}
+    host := containers.Host{c, nil, "test", 10000, hostChannel, new(sync.RWMutex)}
+    modPool.Lock()
     hostPool = append(hostPool, host)
+    modPool.Unlock()
+    go readConnection(c, host)
     log.Println("Finished Processing Connection")
 }
 
@@ -135,12 +153,32 @@ func attachDataPort(c net.Conn) {
     }
     if peonConn != nil {
         log.Println("Initializing Data port from: ", ip)
+        peonConn.Lock()
         peonConn.DataPort = c
+        peonConn.Unlock()
+        go readConnection(c, *peonConn)
     } else {
         log.Println("Did not find a communication port")
         c.Write([]byte("Did not find a communication port for you, closing"))
         defer c.Close()
     }
+}
+
+//TODO:  If the connection has an error, this is the place to remove it from the active hosts.
+func readConnection(c net.Conn, container containers.Host) {
+    defer c.Close()
+    reader := bufio.NewReader(c)
+    for {
+        message, err := reader.ReadBytes('\n')
+        if err != nil {
+            log.Println("There was an error reading the message")
+            
+            break
+        }
+        messageBus <- message
+        //log.Println(string(message))
+    }
+    log.Println("Exited connection listener")
 }
 
 func findConnection(c net.Conn) (*containers.Host, error) {
