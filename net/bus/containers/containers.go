@@ -19,3 +19,11 @@ type Host struct {
 	Message chan string
 	*sync.RWMutex
 }
+
+/*
+Job... top level container for jobs
+*/
+type Job interface {
+	Lock() sync.RWMutex
+	JobID() string
+}

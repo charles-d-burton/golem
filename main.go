@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"flag"
-	"golem-server/master"
+	"golem/master"
 	"os"
 	"os/signal"	
 	"syscall"
@@ -14,7 +14,7 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go handleCtrlC(c)
 	var (
-		mode = flag.String("mode", "master", "The operational mode of the server")
+		mode = flag.String("mode", "cli", "The operational mode of the server")
 		commPort = flag.Int("commport", 10000, "The listening communication port")
 		dataPort = flag.Int("dataport", 10001, "The port for data transfers")
 		bindIP = flag.String("bind", "0.0.0.0", "The IP you want the server to bind to")		
@@ -29,17 +29,11 @@ func main() {
 		log.Println("overlord")
 	} else if *mode == "peon" {
 		log.Println("peon")
-	} else {
+	} else if *mode == "cli" {
+		log.Println(*mode)
+	}else {
 		log.Println("Invalid mode setting")
 	}
-	
-	
-	/*go func() {
-		for sig := range c {
-			
-			log.Println(sig)
-		}
-	}()*/
 }
 
 func handleCtrlC(c chan os.Signal) {
