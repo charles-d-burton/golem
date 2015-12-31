@@ -31,7 +31,7 @@ func main() {
 		log.Println("peon")
 	} else if *mode == "cli" {
 		log.Println(*mode)
-	}else {
+	} else {
 		log.Println("Invalid mode setting")
 	}
 }
