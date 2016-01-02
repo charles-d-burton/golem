@@ -1,28 +1,35 @@
 package main
 
 import (
-	"log"
 	"flag"
-	"golem-server/master"
+	"fmt"
+	"github.com/golem/configSetUp"
+	"github.com/golem/master"
+	"log"
 	"os"
-	"os/signal"	
+	"os/signal"
 	"syscall"
 )
 
 func main() {
+	configSetUp.MakeYamlFile()
+	configSetUp.OpenYaml()
+
+	var o *configSetUp.Options
+	fmt.Println("Hello", o)
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go handleCtrlC(c)
 	var (
-		mode = flag.String("mode", "master", "The operational mode of the server")
-		commPort = flag.Int("commport", 10000, "The listening communication port")
-		dataPort = flag.Int("dataport", 10001, "The port for data transfers")
-		bindIP = flag.String("bind", "0.0.0.0", "The IP you want the server to bind to")		
+		mode     = flag.String("mode", o.Mode, "The operational mode of the server")
+		commPort = flag.Int("commport", o.CommPort, "The listening communication port")
+		dataPort = flag.Int("dataport", o.DataPort, "The port for data transfers")
+		bindIP   = flag.String("bind", o.BindIP, "The IP you want the server to bind to")
 	)
-	
+
 	flag.Parse()
-	
-	if *mode == "master" {
+	if *mode == o.Mode {
 		log.Println("master")
 		master.StartMaster(*commPort, *dataPort, *bindIP, "master")
 	} else if *mode == "overlord" {
@@ -32,11 +39,10 @@ func main() {
 	} else {
 		log.Println("Invalid mode setting")
 	}
-	
-	
+	 
 	/*go func() {
 		for sig := range c {
-			
+
 			log.Println(sig)
 		}
 	}()*/

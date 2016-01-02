@@ -11,7 +11,7 @@ chans will be connected to a socket.
 import (
 	"net"
 	"log"
-    "golem-server/net/bus/containers"
+    "github.com/golem/net/bus/containers"
     "strconv"
 )
 

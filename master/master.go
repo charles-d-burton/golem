@@ -1,7 +1,7 @@
 package master
 
 import (
-	"golem-server/net/bus"
+	"github.com/golem/net/bus"
 )
 
 /*
