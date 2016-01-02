@@ -1,14 +1,12 @@
 package configSetUp
 
 import (
-	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"gopkg.in/yaml.v2"
 )
-
+//for testing, change to your user name
 const filePath string = "/home/travisws/text.txt"
 
 type Options struct {
@@ -17,6 +15,8 @@ type Options struct {
 	DataPort int
 	BindIP   string
 }
+//Used to pass the values to the main file.
+var Config Options
 
 func check(e error) {
 	if e != nil {
@@ -24,7 +24,7 @@ func check(e error) {
 	}
 }
 
-//MakeYamlFile : chreates the YAML configuration file
+//chreates the startup YAML configuration file, if it dose not exist.
 func MakeYamlFile() {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		//The default config settings
@@ -45,22 +45,17 @@ func MakeYamlFile() {
 	}
 }
 
-//OpenYaml : opens the configuration file and bind to the struct.
+//opens the configuration file and bind to the struct and the variable Config.
 func OpenYaml() {
 	//for testing, change to your user name
 	filename, err1 := filepath.Abs("/home/travisws/text.txt")
 	check(err1)
 
-	var o *Options
-
 	yamlFile, err2 := ioutil.ReadFile(filename)
 	check(err2)
 
-	err3 := yaml.Unmarshal(yamlFile, &o)
+	err3 := yaml.Unmarshal(yamlFile, &Config)
 	check(err3)
 
-	fmt.Printf("IPV4: %#v\n", o.Mode)
-	fmt.Printf("IPV4: %#v\n", o.CommPort)
-	fmt.Printf("IPV4: %#v\n", o.DataPort)
-	fmt.Printf("IPV4: %#v\n", o.BindIP)
+	//fmt.Printf("IPV4: %#v\n", o.Mode)
 }

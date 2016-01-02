@@ -2,6 +2,7 @@ package containers
 
 import (
 	"net"
+	"sync"
 )
 
 /*
@@ -16,5 +17,13 @@ type Host struct {
 	HostName string
 	Port int
 	Message chan string
-	
+	*sync.RWMutex
+}
+
+/*
+Job... top level container for jobs
+*/
+type Job interface {
+	Lock() sync.RWMutex
+	JobID() string
 }
