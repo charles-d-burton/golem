@@ -35,13 +35,11 @@ func MakeYamlFile() {
 			BindIP:   "0.0.0.0"}
 
 		// Convert the Person struct to YAML.
-
 		y, jerr := yaml.Marshal(p)
 		check(jerr)
 
 		fileOut := ioutil.WriteFile(filePath, y, 0644)
 		check(fileOut)
-
 	}
 }
 
