@@ -59,9 +59,18 @@ func main() {
 	
 	if mode == "master" {
 		master.StartMaster(commPort, dataPort, bindIP, mode)
+	} else if mode == "peon" {
+		
+	} else if mode == "overlord" {
+		
+	} else {
+		runCommandLine(*golem)
 	}
 }
 
+func runCommandLine(golem cli.App) {
+	
+}
 
 
 func handleCtrlC(c chan os.Signal) {
