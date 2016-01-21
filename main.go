@@ -4,6 +4,7 @@ import (
 	"github.com/codegangsta/cli"
 	"golem/configSetUp"
 	"golem/master"
+	"golem/secure"
 	"log"
 	"os"
 	"os/signal"
@@ -11,13 +12,20 @@ import (
 	"syscall"
 )
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
 func main() {
 	user, err := user.Current()
 	if user.Uid != "0" || err != nil {
 		panic("You must run this program as root!")
 		os.Exit(0)
 	} else {
-		
+		err := secure.SetupKeys()
+		check(err)
 		log.Println(user.Uid)
 		configSetUp.MakeYamlFile()
 		configSetUp.OpenYaml()
@@ -88,3 +96,5 @@ func handleCtrlC(c chan os.Signal) {
 	log.Println("Removed UNIX domain socket")
 	os.Exit(0)
 }
+
+

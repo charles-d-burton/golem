@@ -6,9 +6,12 @@ import (
 	"os"
 	"path/filepath"
 )
-//for testing, change to your user name
-const filePath string = "/home/travisws/text.txt"
+//Configu file location
+const configFile string = "/etc/golem/golem.conf"
 
+/*
+Contains the program runtime options
+*/
 type Options struct {
 	Mode     string
 	CommPort int
@@ -24,9 +27,9 @@ func check(e error) {
 	}
 }
 
-//chreates the startup YAML configuration file, if it dose not exist.
+//creates the startup YAML configuration file, if it dose not exist.
 func MakeYamlFile() {
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		//The default config settings
 		p := Options{
 			Mode:     "master",
@@ -38,7 +41,7 @@ func MakeYamlFile() {
 		y, jerr := yaml.Marshal(p)
 		check(jerr)
 
-		fileOut := ioutil.WriteFile(filePath, y, 0644)
+		fileOut := ioutil.WriteFile(configFile, y, 0644)
 		check(fileOut)
 	}
 }
@@ -46,7 +49,7 @@ func MakeYamlFile() {
 //opens the configuration file and bind to the struct and the variable Config.
 func OpenYaml() {
 	//for testing, change to your user name
-	filename, err1 := filepath.Abs("/home/travisws/text.txt")
+	filename, err1 := filepath.Abs(configFile)
 	check(err1)
 
 	yamlFile, err2 := ioutil.ReadFile(filename)
