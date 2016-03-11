@@ -17,6 +17,7 @@ import (
     //"io/ioutil"
     "bufio"
     "sync"
+    "crypto/tls"
 )
 
 const (
@@ -67,12 +68,15 @@ This opens the communication CommSocketListener
 peons will connect to and use this socket
 //TODO:  Connect the socket bus here with the control bus
 */
-func SocketListener(ip string, port int, role string) {
-    listener := initListener(ip, port)
+func SocketListener(ip string, port int, tlsCfg struct, role string) {
+        
+    tlsListener, err := tls.Listen("tcp4", ip + ":" + strconv.Itoa(port), tlsCfg)
+    
+    //listener := initListener(ip, port)
     if role == "comm" {
-        startCommPort(listener)
+        startCommPort(tlsListener)
     } else {
-        go startDataPort(listener)
+        go startDataPort(tlsListener)
     }
 }
 
