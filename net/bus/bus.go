@@ -12,22 +12,34 @@ import (
 	"net"
 	"log"
     "golem/net/bus/containers"
+    "golem/secure"
     "strconv"
     "errors"
     //"io/ioutil"
     "bufio"
     "sync"
-    "crypto/tls"
 )
 
 const (
     busAddress = "/tmp/golem_bus.sock"
 )
 
-var messageBus = make(chan []byte, 500)
-
-var hostPool []containers.Host
-var modPool sync.Mutex
+var (
+    messageBus = make(chan []byte, 500)
+    
+    hostPool []containers.Host
+    modPool sync.Mutex
+    masterKey = secure.MasterPrivateKey
+    masterPub = secure.MasterPubKey
+    
+    masterAcceptedPubs = secure.MasterAcceptDir
+    masterPendingPubs = secure.MasterPendingDir
+    
+    peonKey = secure.PeonPrivateKey
+    peonPub = secure.PeonPubKey
+    
+    
+)
 
 func init () {
     go func() {
@@ -68,15 +80,16 @@ This opens the communication CommSocketListener
 peons will connect to and use this socket
 //TODO:  Connect the socket bus here with the control bus
 */
-func SocketListener(ip string, port int, tlsCfg struct, role string) {
-        
-    tlsListener, err := tls.Listen("tcp4", ip + ":" + strconv.Itoa(port), tlsCfg)
+func SocketListener(ip string, port int, role string) {
+    //tlsCfg.InsecureSkipVerify = true    
+    //tlsListener, err := tls.Listen("tcp4", ip + ":" + strconv.Itoa(port), &tlsCfg)
+
     
-    //listener := initListener(ip, port)
+   listener := initListener(ip, port)
     if role == "comm" {
-        startCommPort(tlsListener)
+        startCommPort(listener)
     } else {
-        go startDataPort(tlsListener)
+        go startDataPort(listener)
     }
 }
 

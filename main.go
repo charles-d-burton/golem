@@ -24,8 +24,7 @@ func main() {
 		panic("You must run this program as root!")
 		os.Exit(0)
 	} else {
-		err := secure.SetupKeys()
-		check(err)
+		
 		log.Println(user.Uid)
 		configSetUp.MakeYamlFile()
 		configSetUp.OpenYaml()
@@ -80,7 +79,10 @@ func main() {
 			runCommandLine(*golem)
 		}*/
 		if options.Mode == "master" {
-		master.StartMaster(options.CommPort, options.DataPort, options.BindIP, options.Mode)
+            err := secure.SetupKeys(options.Mode)
+		    check(err)
+		    master.StartMaster(options.CommPort, options.DataPort, options.BindIP, options.Mode)
+            
 		}
 	}
 }

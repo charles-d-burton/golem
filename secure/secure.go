@@ -1,40 +1,73 @@
 package secure
 
 import (
+	"crypto/rand"
+	"golang.org/x/crypto/nacl/box"
+	"io/ioutil"
+	"log"
 	"os"
-    "crypto/rsa"
-    "crypto/rand"
-    "crypto/x509"
-    "encoding/pem"
-    "io/ioutil"
-    "log"
+)
+
+const (
+	masterKeyDir     = "/etc/golem/pki/master"
+	MasterPrivateKey = "/etc/golem/pki/master/master_key"
+	MasterPubKey     = "/etc/golem/pki/master/master_pub"
+
+	MasterAcceptDir  = "/etc/golem/pki/master/peons"
+	MasterPendingDir = "/etc/golem/pki/master/pending"
+
+	peonKeyDir     = "/etc/golem/pki/peon"
+	PeonPrivateKey = "/etc/golem/pki/peon/peon_key"
+	PeonPubKey     = "/etc/golem/pki/peon/peon_pub"
 )
 
 type keys struct {
-    Pub string
-    Priv string
+	Pub  string
+	Priv string
 }
 
 /*
 Functions in this package help with generating and loading keys for use by
-the overlord, master, and peon.  They are used to secure communication
+the overlord, master, and peon.  They are used to secure communication by encrypting
+the data that's sent.
 */
-
-func SetupKeys() error {
-    mkDirs("/etc/golem/pki/master")
-    if !checkKeys("/etc/golem/pki/master/master_pub.pem") || !checkKeys("/etc/golem/pki/master/master_key.pem") {
-        log.Println("Keys Not Found, Generating new keys ...")
-        err := MakeSSHKeyPair("/etc/golem/pki/master/master_pub.pem", "/etc/golem/pki/master/master_key.pem")
-        return err
-    }
-    log.Println("Keys Found")
-    return nil 
+func SetupKeys(mode string) error {
+	if mode == "master" {
+		mkDirs(masterKeyDir)
+		mkDirs(MasterAcceptDir)
+		if !checkKeys(MasterPrivateKey) || !checkKeys(MasterPubKey) {
+			log.Println("Master Keys Not Found, Generating new keys ...")
+			masterPub, masterKey, _ := box.GenerateKey(rand.Reader)
+			err := ioutil.WriteFile(MasterPubKey, masterPub[:], 0640)
+			err = ioutil.WriteFile(MasterPrivateKey, masterKey[:], 0640)
+			if err != nil {
+				log.Println(err.Error())
+				return err
+			}
+			//err := MakeSSHKeyPair("/etc/golem/pki/master/master_pub.pem", "/etc/golem/pki/master/master_key.pem")
+			//return err
+		}
+		log.Println("Keys Found")
+	} else if mode == "peon" {
+		mkDirs(peonKeyDir)
+		if !checkKeys(PeonPrivateKey) || !checkKeys(PeonPubKey) {
+			log.Println("Peon Keys Not Found, Generating new keys ...")
+			peonPub, peonKey, _ := box.GenerateKey(rand.Reader)
+			err := ioutil.WriteFile(PeonPubKey, peonPub[:], 0640)
+			err = ioutil.WriteFile(PeonPrivateKey, peonKey[:], 0640)
+			if err != nil {
+				log.Println(err.Error())
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // MakeSSHKeyPair make a pair of public and private keys for SSH access.
 // Public key is encoded in the format for inclusion in an OpenSSH authorized_keys file.
 // Private Key generated is PEM encoded
-func MakeSSHKeyPair(pubKeyPath, privateKeyPath string) error {
+/*func MakeSSHKeyPair(pubKeyPath, privateKeyPath string) error {
     privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
     if err != nil {
         return err
@@ -54,7 +87,7 @@ func MakeSSHKeyPair(pubKeyPath, privateKeyPath string) error {
 	Headers: nil,
 	Bytes: privDer,
 	};
-    
+
 
 	// Resultant private key in PEM format.
     err = ioutil.WriteFile(privateKeyPath, pem.EncodeToMemory(&privBlk), 0640);
@@ -78,26 +111,25 @@ func MakeSSHKeyPair(pubKeyPath, privateKeyPath string) error {
 	//pub_pem := string(pem.EncodeToMemory(&pubBlk));
 	//log.Printf(pub_pem);
     return ioutil.WriteFile(pubKeyPath, pem.EncodeToMemory(&pubBlk), 0644)
-}
+}*/
 
 // mkDirs reports whether the named file or directory exists.
 func mkDirs(names ...string) {
-    for _, name := range names {
-        if _, err := os.Stat(name); err != nil {
-            if os.IsNotExist(err) {
-                os.MkdirAll(name, 0400)
-            }
-        }
-    }
+	for _, name := range names {
+		if _, err := os.Stat(name); err != nil {
+			if os.IsNotExist(err) {
+				os.MkdirAll(name, 0400)
+			}
+		}
+	}
 }
 
 //Check to see if the keys have already been generated
 func checkKeys(name string) bool {
-    if _, err := os.Stat(name); err == nil {
-        log.Println(name, "exist!")
-        return true
-    }
-    
-    return false
-}
+	if _, err := os.Stat(name); err == nil {
+		log.Println(name, "exist!")
+		return true
+	}
 
+	return false
+}
