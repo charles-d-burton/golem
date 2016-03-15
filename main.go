@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/codegangsta/cli"
-	"golem/configSetUp"
+	"golem/config"
 	"golem/master"
 	"golem/secure"
 	"log"
@@ -26,10 +26,10 @@ func main() {
 	} else {
 		
 		log.Println(user.Uid)
-		configSetUp.MakeYamlFile()
-		configSetUp.OpenYaml()
+		config.MakeYamlFile()
+		config.OpenYaml()
 		
-		options := &configSetUp.Config
+		options := &config.Config
 	
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -64,6 +64,12 @@ func main() {
 				Usage:       "Sets the IP golem will bind to.",
 				Destination: &options.BindIP,
 			},
+            cli.StringFlag{
+                Name:       "C, config",
+                Value:      "/etc/golem/golem.conf",
+                Usage:      "Load alternate config file",
+                Destination: &options.ConfigFile,  
+            },
 		}
 	
 		golem.Commands = []cli.Command{}

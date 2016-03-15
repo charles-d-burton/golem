@@ -1,4 +1,4 @@
-package configSetUp
+package config
 
 import (
 	"gopkg.in/yaml.v2"
@@ -17,6 +17,7 @@ type Options struct {
 	CommPort int
 	DataPort int
 	BindIP   string
+    ConfigFile  string
 }
 //Used to pass the values to the main file.
 var Config Options

@@ -17,6 +17,7 @@ type Host struct {
 	HostName string
 	Port int
 	Message chan string
+    PubKey [32]byte
 	*sync.RWMutex
 }
 
