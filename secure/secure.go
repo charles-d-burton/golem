@@ -1,24 +1,22 @@
 package secure
 
 import (
-	"crypto/rand"
-	"golang.org/x/crypto/nacl/box"
-	"io/ioutil"
 	"log"
 	"os"
+	"io/ioutil"
 )
 
 const (
 	masterKeyDir     = "/etc/golem/pki/master"
 	MasterPrivateKey = "/etc/golem/pki/master/master_key"
-	MasterPubKey     = "/etc/golem/pki/master/master_pub"
+	MasterPubCert     = "/etc/golem/pki/master/master_pub"
 
 	MasterAcceptDir  = "/etc/golem/pki/master/peons"
 	MasterPendingDir = "/etc/golem/pki/master/pending"
 
 	peonKeyDir     = "/etc/golem/pki/peon"
 	PeonPrivateKey = "/etc/golem/pki/peon/peon_key"
-	PeonPubKey     = "/etc/golem/pki/peon/peon_pub"
+	PeonPubCert     = "/etc/golem/pki/peon/peon_pub"
 )
 
 type keys struct {
@@ -31,6 +29,42 @@ Functions in this package help with generating and loading keys for use by
 the overlord, master, and peon.  They are used to secure communication by encrypting
 the data that's sent.
 */
+func SetupKeys(mode string) error {
+	if mode == "master" {
+		mkDirs(masterKeyDir)
+		mkDirs(MasterAcceptDir)
+		if !checkKeys(MasterPrivateKey) || !checkKeys(MasterPubCert) {
+			log.Println("Master Keys Not Found, Generating new keys ...")
+			key, cert, err := GenerateMemCert()
+			err = ioutil.WriteFile(MasterPrivateKey, key, 0640)
+			err = ioutil.WriteFile(MasterPubCert, cert, 0640)
+			if err != nil {
+				log.Println(err.Error())
+				return err
+			}
+			
+		} else {
+			log.Println("Keys Found")
+		}
+	} else if mode == "peon" {
+		mkDirs(peonKeyDir)
+		if !checkKeys(PeonPrivateKey) || !checkKeys(PeonPubCert) {
+			log.Println("Peon Keys Not Found, Generating new keys ...")
+			key, cert, err := GenerateMemCert()
+			err = ioutil.WriteFile(PeonPrivateKey, key, 0640)
+			err = ioutil.WriteFile(PeonPubCert, cert, 0640)
+			if err != nil {
+				log.Println(err.Error())
+				return err
+			}
+		} else {
+			log.Println("Keys Found")
+		}
+	}
+	return nil
+}
+
+/*
 func SetupKeys(mode string) error {
 	if mode == "master" {
 		mkDirs(masterKeyDir)
@@ -62,7 +96,7 @@ func SetupKeys(mode string) error {
 		}
 	}
 	return nil
-}
+}*/
 
 // MakeSSHKeyPair make a pair of public and private keys for SSH access.
 // Public key is encoded in the format for inclusion in an OpenSSH authorized_keys file.

@@ -4,6 +4,8 @@ import (
     "sync"
 )
 
+
+
 //Set the configuration options
 type masterConfiguration struct {
     DataPort    int
@@ -46,3 +48,5 @@ func GetPeonConfig() *peonConfiguration {
     })
     return peonConfig
 }
+
+
