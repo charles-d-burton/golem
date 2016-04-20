@@ -35,7 +35,7 @@ func SetupKeys(mode string) error {
 		mkDirs(MasterAcceptDir)
 		if !checkKeys(MasterPrivateKey) || !checkKeys(MasterPubCert) {
 			log.Println("Master Keys Not Found, Generating new keys ...")
-			key, cert, err := GenerateMemCert()
+			cert, key, err := GenerateMemCert()
 			err = ioutil.WriteFile(MasterPrivateKey, key, 0640)
 			err = ioutil.WriteFile(MasterPubCert, cert, 0640)
 			if err != nil {
@@ -50,7 +50,7 @@ func SetupKeys(mode string) error {
 		mkDirs(peonKeyDir)
 		if !checkKeys(PeonPrivateKey) || !checkKeys(PeonPubCert) {
 			log.Println("Peon Keys Not Found, Generating new keys ...")
-			key, cert, err := GenerateMemCert()
+			cert, key, err := GenerateMemCert()
 			err = ioutil.WriteFile(PeonPrivateKey, key, 0640)
 			err = ioutil.WriteFile(PeonPubCert, cert, 0640)
 			if err != nil {
