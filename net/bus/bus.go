@@ -30,13 +30,13 @@ var (
     hostPool []containers.Host
     modPool sync.Mutex
     masterKey = secure.MasterPrivateKey
-    masterPub = secure.MasterPubKey
+    masterPub = secure.MasterPubCert
     
     masterAcceptedPubs = secure.MasterAcceptDir
     masterPendingPubs = secure.MasterPendingDir
     
     peonKey = secure.PeonPrivateKey
-    peonPub = secure.PeonPubKey
+    peonPub = secure.PeonPubCert
     
     
 )
@@ -147,13 +147,13 @@ func processConnection(c net.Conn) {
     }
     
     log.Println("Processing Connection from: ", ip)
-	hostChannel := make (chan string)
-    host := containers.Host{c, nil, "test", 10000, hostChannel, new(sync.RWMutex)}
+	/*hostChannel := make (chan string)
+    host := containers.Host{c, nil, "test", 10000, hostChannel, [32]byte , new(sync.RWMutex)}
     modPool.Lock()
     hostPool = append(hostPool, host)
     modPool.Unlock()
     go readConnection(c, host)
-    log.Println("Finished Processing Connection")
+    log.Println("Finished Processing Connection")*/
 }
 
 func attachDataPort(c net.Conn) {
