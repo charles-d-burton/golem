@@ -48,7 +48,6 @@ func initListener(ip string, port int) (net.Listener) {
         log.Fatal(err)
         panic(err)
     }
-    defer l.Close()
     return l
 }
 
