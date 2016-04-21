@@ -16,8 +16,8 @@ type Host struct {
 	DataPort net.Conn
 	HostName string
 	Port int
+	UUID string
 	Message chan string
-    PubKey [32]byte
 	*sync.RWMutex
 }
 
