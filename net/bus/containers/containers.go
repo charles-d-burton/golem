@@ -28,3 +28,25 @@ type Job interface {
 	Lock() sync.RWMutex
 	JobID() string
 }
+
+/*
+Mesh...
+Struct to contain the mesh relay mapping
+*/
+type Mesh struct {
+	Peers []string
+	Nets []string
+	
+	
+}
+
+/* Peer ... container
+to hold information about Peers
+for distribution to all clients
+to inform about the mesh
+*/
+type Peer struct {
+	Host string
+	Net string
+	
+}
